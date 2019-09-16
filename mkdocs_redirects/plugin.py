@@ -31,7 +31,10 @@ def write_html(site_dir, old_path, new_path):
             <!doctype html>
             <html lang="en" class="no-js">
             <head>
-                <script>var anchor=window.location.hash.substr(1);location.href="{url}"+(anchor?"#"+anchor:"")</script>
+                <script>
+                    var anchor=window.location.hash.substr(1);
+                    location.href="{url}"+(anchor?"#"+anchor:"");
+                </script>
                 <meta http-equiv="refresh" content="0; url={url}">
             </head>
             <body>
@@ -100,13 +103,19 @@ class RedirectPlugin(BasePlugin):
         # Walk through the redirect map and write their HTML files
         for page_old, page_new in self.redirects.items():
 
+            if("/" in page_new):
+                page_new = page_new.replace("/", "\\")
+
             # External redirect targets are easy, just use it as the target path
             if page_new.lower().startswith(('http://', 'https://')):
                 dest_path = page_new
 
+            if page_new.lower().startswith('/'):
+                dest_path = page_new
+
             # Internal document targets require a leading '/' to resolve properly.
-            elif page_new in self.doc_pages:
-                dest_path = '/' + self.doc_pages[page_new].dest_path
+            if page_new in self.doc_pages:
+                dest_path = '/' + self.doc_pages[page_new].dest_path.replace("\\", "/")
 
                 # If use_directory_urls is set, redirect to the directory, not the HTML file
                 if use_directory_urls:

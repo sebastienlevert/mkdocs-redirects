@@ -1,0 +1,30 @@
+trigger:
+- master
+- dev
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+variables:
+  artifactFeed: Valo    
+
+steps:
+- task: UsePythonVersion@0
+  inputs:
+    versionSpec: '3.7'
+    architecture: 'x64'
+  displayName: 'Using Python 3.7'
+
+- script: 'python -m pip install -U pip setuptools wheel twine'
+  displayName: 'Installing Build Tools'
+
+- script: 'python setup.py bdist_wheel'
+  displayName: 'Building Package'
+  
+- task: TwineAuthenticate@0
+  inputs:
+    artifactFeeds: 'Valo'
+  displayName: 'Authenticating to Azure Artifacts'
+
+- script: 'twine upload -r $(artifactFeed) --skip-existing --config-file $(PYPIRC_PATH) dist/*'
+  displayName: 'Publishing Plugin'
